@@ -1,0 +1,18 @@
+<main class="main">
+  <!-- Game Selection Component -->
+  @if (gameStateService.gameState().currentView === 'gameSelection') {
+    <app-game-selection></app-game-selection>
+  }
+  
+  <!-- Player Management Component -->
+  @if (gameStateService.gameState().currentView === 'playerManagement') {
+    <app-player-management></app-player-management>
+  }
+  
+  <!-- Score Registration Component -->
+  @if (gameStateService.gameState().currentView === 'scoreRegistration') {
+    <app-score-registration></app-score-registration>
+  }
+</main>
+
+<router-outlet />

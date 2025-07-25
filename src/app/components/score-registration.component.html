@@ -1,0 +1,255 @@
+@if (gameState().gameCreated) {
+  <div class="score-registration">
+    <div class="app-flex-layout">
+      <div class="app-tile-select">
+        <!-- Game info section -->
+        <div class="game-info">
+          <h2>{{ gameState().gameName }}</h2>
+          <p>Spel-ID: {{ gameState().gameId }}</p>
+          <p>Spelare i spelet: {{ gameState().players.join(', ') }}</p>
+        </div>
+        
+        <h1>Mah-jong Poängräknare</h1>
+        
+        <!-- Player selection buttons -->
+        <div class="player-selection">
+          <label>Välj spelare:</label>
+          <div class="player-buttons">
+            @for (player of gameState().players; track player) {
+              <button 
+                class="player-btn"
+                [class.selected]="isPlayerSelected(player)"
+                (click)="selectPlayer(player)"
+              >
+                {{ getPlayerFirstName(player) }}
+              </button>
+            }
+          </div>
+        </div>
+        
+        <!-- Back to player management button -->
+        <div class="navigation-controls">
+          <button 
+            class="btn btn-secondary btn-small"
+            (click)="goBackToPlayerManagement()"
+          >
+            ← Tillbaka till spelarhantering
+          </button>
+        </div>
+      
+        <div class="wind-selectors">
+          <div class="wind-group">
+            <label>Rondens vind:</label>
+            <div class="wind-buttons">
+              @for (wind of windOptions; track wind.id) {
+                <button 
+                        (click)="roundWind = wind.id"
+                        [class.selected]="roundWind === wind.id"
+                        class="wind-btn">
+                  <span class="tile-corner-label">{{ getTileShortLabel(wind.id) }}</span>
+                  <img [src]="wind.icon" [alt]="wind.label" class="wind-icon">
+                </button>
+              }
+            </div>
+          </div>
+          <div class="wind-group">
+            <label>Min vind:</label>
+            <div class="wind-buttons">
+              @for (wind of windOptions; track wind.id) {
+                <button 
+                        (click)="playerWind = wind.id"
+                        [class.selected]="playerWind === wind.id"
+                        class="wind-btn">
+                  <span class="tile-corner-label">{{ getTileShortLabel(wind.id) }}</span>
+                  <img [src]="wind.icon" [alt]="wind.label" class="wind-icon">
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+        
+        <h3>Grundstenar (max {{ getMaxHandSize() }}):</h3>
+        <div class="tiles">
+          @for (tile of tiles; track tile.id) {
+            <button (click)="addTile(tile)" [disabled]="hand.length >= getMaxHandSize()" class="tile-btn">
+              <span class="tile-corner-label">{{ getTileShortLabel(tile.id) }}</span>
+              <img [src]="tile.icon" [alt]="tile.label" class="tile-image">
+            </button>
+          }
+        </div>
+        
+        <h3>Bonusstenar (blommor & årstider):</h3>
+        <div class="tiles">
+          @for (tile of bonusTiles; track tile.id) {
+            <button (click)="addTile(tile)" class="tile-btn">
+              <span class="tile-corner-label">{{ getTileShortLabel(tile.id) }}</span>
+              <img [src]="tile.icon" [alt]="tile.label" class="tile-image">
+              <span class="tile-label">{{ tile.label }}</span>
+            </button>
+          }
+        </div>
+      </div>
+      
+      <div class="app-hand-view">
+        <p>{{ getHandTitle() }} ({{ hand.length }}/{{ getMaxHandSize() }}) - automatiskt grupperad:</p>
+        <div class="grouped-hand">
+          <!-- Bonusstenar -->
+          @if (getGroupedHand().bonusTiles.length > 0) {
+            <div class="tile-group">
+              <div class="group-tiles">
+                <img *ngFor="let tile of getGroupedHand().bonusTiles; let i = index" 
+                     [src]="tile.icon" 
+                     [alt]="tile.label" 
+                     (click)="removeBonusTile(i)"
+                     class="tile-in-hand">
+              </div>
+            </div>
+          }
+
+        <!-- Kongs (4 stenar) -->
+        <div *ngIf="getGroupedHand().kongs.length > 0">
+          <div *ngFor="let group of getGroupedHand().kongs" class="tile-group">
+            <div class="group-tiles">
+              <div class="compact-group">
+                <span class="tile-corner-label">{{ getTileShortLabel(group.tile.id) }}</span>
+                <ng-container *ngFor="let i of [].constructor(group.count); let idx = index">
+                  <img *ngIf="!isHiddenKong(group.tile.id) || idx < group.count - 1"
+                       [src]="group.tile.icon"
+                       [alt]="group.tile.label"
+                       (click)="removeTileByType(group.tile.id)"
+                       class="tile-in-hand kong-tile">
+                  <div *ngIf="isHiddenKong(group.tile.id) && idx === group.count - 1"
+                       class="tile-in-hand kong-tile tile-hidden"
+                       (click)="removeTileByType(group.tile.id)"></div>
+                </ng-container>
+                <button (click)="toggleHiddenKong(group.tile.id)"
+                        [class.hidden-kong-selected]="isHiddenKong(group.tile.id)"
+                        class="hidden-pong-inline-btn"
+                        title="Markera som dold kong">
+                  <span *ngIf="isHiddenKong(group.tile.id)">✓</span>
+                  <span *ngIf="!isHiddenKong(group.tile.id)">👁️</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pongs (3 stenar) -->
+        <div *ngIf="getGroupedHand().pongs.length > 0">
+          <div *ngFor="let group of getGroupedHand().pongs" class="tile-group">
+            <div class="group-tiles">
+              <div class="compact-group pong-row">
+                <span class="tile-corner-label">{{ getTileShortLabel(group.tile.id) }}</span>
+                <ng-container *ngFor="let i of [].constructor(group.count); let idx = index">
+                  <img *ngIf="!isHiddenPong(group.tile.id) || idx < group.count - 1"
+                       [src]="group.tile.icon"
+                       [alt]="group.tile.label"
+                       (click)="removeTileByType(group.tile.id)"
+                       class="tile-in-hand pong-tile">
+                  <div *ngIf="isHiddenPong(group.tile.id) && idx === group.count - 1"
+                       class="tile-in-hand pong-tile tile-hidden"
+                       (click)="removeTileByType(group.tile.id)"></div>
+                </ng-container>
+                <button (click)="toggleHiddenPong(group.tile.id)"
+                        [class.hidden-selected]="isHiddenPong(group.tile.id)"
+                        class="hidden-pong-inline-btn"
+                        title="Markera som dold pong">
+                  <span *ngIf="isHiddenPong(group.tile.id)">✓</span>
+                  <span *ngIf="!isHiddenPong(group.tile.id)">👁️</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stegar (3 i följd) -->
+        <div *ngIf="getGroupedHand().straights.length > 0">
+          <div *ngFor="let group of getGroupedHand().straights" class="tile-group">
+            <div class="group-tiles">
+              <div class="compact-group">
+                <ng-container *ngFor="let tile of group.tiles">
+                  <span class="tile-corner-label">{{ getTileShortLabel(tile.id) }}</span>
+                  <img [src]="tile.icon"
+                       [alt]="tile.label"
+                       (click)="removeTileByType(tile.id)"
+                       class="tile-in-hand straight-tile">
+                </ng-container>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Par (2 stenar) -->
+        <div *ngIf="getGroupedHand().pairs.length > 0">
+          <div *ngFor="let group of getGroupedHand().pairs" class="tile-group">
+            <div class="group-tiles">
+              <div class="compact-group">
+                <span class="tile-corner-label">{{ getTileShortLabel(group.tile.id) }}</span>
+                <img *ngFor="let i of [].constructor(group.count)" 
+                     [src]="group.tile.icon" 
+                     [alt]="group.tile.label" 
+                     (click)="removeTileByType(group.tile.id)"
+                     class="tile-in-hand pair-tile">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Singlar (1 sten) -->
+        <div *ngIf="getGroupedHand().singles.length > 0" class="tile-group">
+          <div class="group-tiles">
+            <div class="compact-group">
+              <ng-container *ngFor="let group of getGroupedHand().singles">
+                <span class="tile-corner-label">{{ getTileShortLabel(group.tile.id) }}</span>
+                <img [src]="group.tile.icon" 
+                     [alt]="group.tile.label" 
+                     (click)="removeTileByType(group.tile.id)"
+                     class="tile-in-hand single-tile">
+              </ng-container>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <p *ngIf="bonusHand.length > 0">Klicka på en sten för att ta bort den.</p>
+      
+      <div class="mahjong-status">
+        <label>
+          <input type="checkbox" [(ngModel)]="isMahjong" />
+          Jag har gjort mah-jong
+        </label>
+        <p *ngIf="!isHandComplete()" class="hand-status">
+          <small><em>Handen är inte komplett. Du har {{ hand.length }} stenar, behöver {{ getMaxHandSize() }} för en komplett hand.</em></small>
+        </p>
+        <p *ngIf="isHandComplete() && !isMahjong" class="hand-status">
+          <small><em>Handen är komplett! Markera mah-jong för att beräkna poäng.</em></small>
+        </p>
+      </div>
+      
+      <button (click)="calculateScore()" [disabled]="!isHandComplete() || !isMahjong">Beräkna poäng</button>
+      
+      @if (score !== null) {
+        <div class="score-result">
+          <p>Poäng: {{ score }}</p>
+          <p style="font-size:0.95em;color:#444">{{ scoreExplanation }}</p>
+        </div>
+      }
+      
+      <!-- API Status Notification -->
+      @if (notificationState().status) {
+        <div class="api-notification" 
+             [class.success]="notificationState().status === 'success'" 
+             [class.error]="notificationState().status === 'error'">
+          <p>{{ notificationState().message }}</p>
+        </div>
+      }
+    </div>
+  </div>
+  </div>
+}
+
+@if (!gameState().gameCreated) {
+  <div class="no-game-message">
+    <p>Du måste skapa ett spel först för att kunna registrera poäng.</p>
+  </div>
+}

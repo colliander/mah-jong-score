@@ -1,0 +1,424 @@
+/* Grupperad hand styling */
+.grouped-hand {
+  display: block;
+  max-width: 800px;
+  margin: 20px auto;
+}
+
+.tile-group {
+  display: block;
+  width: 100%;
+  margin-bottom: 2px;
+  padding: 4px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.tile-group:has(.kong-tile) {
+  border-color: #e74c3c;
+  background-color: #fdf2f2;
+}
+
+.tile-group:has(.pong-tile) {
+  border-color: #f39c12;
+  background-color: #fef9e7;
+}
+
+.tile-group:has(.pair-tile) {
+  border-color: #3498db;
+  background-color: #f0f8ff;
+}
+
+.tile-group:has(.single-tile) {
+  border-color: #95a5a6;
+  background-color: #f8f9fa;
+}
+
+.tile-group:has(.straight-tile) {
+  border-color: #9b59b6;
+  background-color: #f8f5ff;
+}
+
+/* Tile styling */
+.kong-tile { border: 2px solid #e74c3c !important; }
+.pong-tile { border: 2px solid #f39c12 !important; }
+.pair-tile { border: 2px solid #3498db !important; }
+.single-tile { border: 2px solid #95a5a6 !important; }
+.straight-tile { border: 2px solid #9b59b6 !important; }
+
+/* Kompakt gruppering */
+.compact-group, .group-tiles {
+  gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  font-size: 0 !important;
+  line-height: 0 !important;
+}
+
+/* Stenar i handen */
+.tile-in-hand, .pong-tile, .kong-tile, .straight-tile, .pair-tile {
+  display: inline-block;
+  vertical-align: top;
+  width: 55px !important;
+  height: 79px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  box-sizing: border-box;
+  background: none;
+  border: none !important;
+}
+
+.tile-in-hand img, .pong-tile img, .kong-tile img, .straight-tile img, .pair-tile img {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: block;
+  box-sizing: border-box;
+}
+
+/* Stenval (viktigt för att stenarna ska visas korrekt) */
+.tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 1rem;
+}
+
+.tile-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  min-width: 55px;
+  min-height: 85px;
+  font-size: 0.8rem;
+  position: relative;
+}
+
+.tile-btn:hover {
+  border-color: #999;
+  background: #f5f5f5;
+}
+
+.tile-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tile-btn img {
+  width: 45px;
+  height: 65px;
+  object-fit: contain;
+  image-rendering: crisp-edges;
+}
+
+.tile-label {
+  display: none !important;
+}
+
+.tile-corner-label {
+  position: absolute;
+  top: 6px;
+  left: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #222;
+  background: rgba(255,255,255,0.9);
+  border-radius: 3px;
+  padding: 1px 3px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Dold pong/kong knappar */
+.hidden-pong-inline-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  padding: 2px 6px;
+  height: 24px;
+  min-width: 20px;
+  font-size: 12px;
+  background: #f5f5f5;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.hidden-pong-inline-btn.hidden-selected,
+.hidden-pong-inline-btn.hidden-kong-selected {
+  background: #d1e7dd;
+  border-color: #198754;
+  color: #198754;
+}
+
+/* Dold sten bakgrund */
+.tile-hidden {
+  background: repeating-linear-gradient(135deg, #114422 0px, #114422 8px, #1e5c2a 8px, #1e5c2a 16px) !important;
+  position: relative;
+}
+
+.tile-hidden img {
+  opacity: 0 !important;
+}
+
+/* Layout */
+.app-flex-layout {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 32px;
+  width: 100%;
+}
+
+.app-tile-select {
+  min-width: 500px;
+  max-width: 500px;
+}
+
+.app-hand-view {
+  flex: 1 1 0;
+  min-width: 320px;
+  max-width: 400px;
+}
+
+/* Vind-knappar */
+.wind-selectors {
+  margin-bottom: 20px;
+}
+
+.wind-group {
+  margin-bottom: 12px;
+}
+
+.wind-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: bold;
+  color: #333;
+}
+
+.wind-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.wind-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  padding: 0;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 55px;
+  height: 79px;
+}
+
+.wind-btn:hover {
+  border-color: #999;
+  background: #f5f5f5;
+}
+
+.wind-btn.selected {
+  border-color: #1976d2;
+  background: #e3f2fd;
+}
+
+.wind-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Spelinformation */
+.game-info {
+  background: #e3f2fd;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border-left: 4px solid #1976d2;
+}
+
+.game-info h2 {
+  margin: 0 0 4px 0;
+  color: #1976d2;
+  font-size: 18px;
+}
+
+.game-info p {
+  margin: 0;
+  font-size: 12px;
+  color: #666;
+  font-family: monospace;
+}
+
+/* Spelarnamn input */
+.player-name-input {
+  margin-bottom: 20px;
+}
+
+.player-name-input label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: bold;
+  color: #333;
+}
+
+.name-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  background: #fff;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.name-input:focus {
+  outline: none;
+  border-color: #1976d2;
+  background: #f8f9fa;
+}
+
+/* Notifikationer */
+.api-notification {
+  margin-top: 15px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.api-notification.success {
+  background-color: #d1e7dd;
+  border: 1px solid #badbcc;
+  color: #0f5132;
+}
+
+.api-notification.error {
+  background-color: #f8d7da;
+  border: 1px solid #f5c2c7;
+  color: #842029;
+}
+
+.api-notification p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Poängresultat och mahjong status */
+.score-result {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f0f8ff;
+  border: 2px solid #3498db;
+  border-radius: 8px;
+}
+
+.score-result p {
+  margin: 5px 0;
+}
+
+.mahjong-status {
+  margin: 20px 0;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-radius: 6px;
+}
+
+.mahjong-status label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.mahjong-status input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+.hand-status {
+  margin-top: 10px;
+}
+
+/* Knappar */
+button:not(.tile-btn):not(.wind-btn):not(.hidden-pong-inline-btn) {
+  padding: 10px 20px;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+button:not(.tile-btn):not(.wind-btn):not(.hidden-pong-inline-btn):hover:not(:disabled) {
+  background-color: #1565c0;
+}
+
+button:not(.tile-btn):not(.wind-btn):not(.hidden-pong-inline-btn):disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Meddelande när inget spel är skapat */
+.no-game-message {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+  font-size: 18px;
+}
+
+/* Responsiv design */
+@media (max-width: 800px) {
+  .app-flex-layout {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .app-tile-select, .app-hand-view {
+    max-width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .app-tile-select {
+    min-width: 0;
+    max-width: 100%;
+  }
+  
+  .tiles {
+    gap: 2px;
+  }
+  
+  .tile-btn {
+    min-width: 48px;
+    min-height: 75px;
+  }
+  
+  .tile-btn img {
+    width: 40px;
+    height: 55px;
+  }
+}
