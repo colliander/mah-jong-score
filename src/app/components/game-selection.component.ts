@@ -11,6 +11,7 @@ export interface Game {
   name?: string;
   createdAt?: string;
   players?: string[];
+  playerNames?: string[]; // Add this to store actual player names
   status?: string;
   player1_id?: string;
   player2_id?: string;
@@ -50,7 +51,6 @@ export interface Game {
                       {{ getStatusText(game.status) }}
                     </div>
                   </div>
-                  <div class="game-id">ID: {{ game.gameId || game.id }}</div>
                   @if (game.createdAt) {
                     <div class="game-date">
                       {{ formatDate(game.createdAt) }}
@@ -58,7 +58,11 @@ export interface Game {
                   }
                   @if (getPlayerCount(game) > 0) {
                     <div class="game-players">
-                      Spelare: {{ getPlayerCount(game) }}/4
+                      {{ getPlayerCount(game) }}/4 spelare: {{ getPlayerNames(game) }}
+                    </div>
+                  } @else {
+                    <div class="game-players no-players">
+                      Inga spelare tillagda än
                     </div>
                   }
                 </div>
@@ -213,6 +217,11 @@ export interface Game {
       color: #27ae60;
     }
     
+    .game-players.no-players {
+      color: #666;
+      font-style: italic;
+    }
+    
     .create-new-game {
       border-top: 1px solid #e0e0e0;
       padding-top: 20px;
@@ -344,8 +353,8 @@ export class GameSelectionComponent implements OnInit {
         
         console.log('Normalized games:', normalizedGames);
         
-        this.games.set(normalizedGames);
-        this.loading.set(false);
+        // Load player names for each game
+        this.loadPlayerNamesForGames(normalizedGames);
       },
       error: (error) => {
         console.error('Error loading games:', error);
@@ -540,5 +549,61 @@ export class GameSelectionComponent implements OnInit {
     if (game.player3_id) count++;
     if (game.player4_id) count++;
     return count;
+  }
+
+  private loadPlayerNamesForGames(games: Game[]) {
+    // Get all players first
+    this.apiService.getPlayers().subscribe({
+      next: (playersResponse) => {
+        let allPlayers: any[] = [];
+        if (playersResponse && Array.isArray(playersResponse)) {
+          allPlayers = playersResponse;
+        } else if (playersResponse && playersResponse.players && Array.isArray(playersResponse.players)) {
+          allPlayers = playersResponse.players;
+        }
+
+        // Add player names to each game
+        const gamesWithPlayerNames = games.map(game => {
+          const playerIds = [game.player1_id, game.player2_id, game.player3_id, game.player4_id].filter(id => id);
+          const playerNames: string[] = [];
+
+          playerIds.forEach(playerId => {
+            const player = allPlayers.find(p => (p.id || p.playerId) === playerId);
+            if (player) {
+              const displayName = `${player.firstname || ''} ${player.lastname || ''}`.trim();
+              playerNames.push(displayName);
+            }
+          });
+
+          return {
+            ...game,
+            playerNames: playerNames
+          };
+        });
+
+        this.games.set(gamesWithPlayerNames);
+        this.loading.set(false);
+      },
+      error: (error) => {
+        console.error('Error loading player names:', error);
+        // Still set the games even if we can't load player names
+        this.games.set(games);
+        this.loading.set(false);
+      }
+    });
+  }
+
+  getPlayerNames(game: Game): string {
+    if (game.playerNames && game.playerNames.length > 0) {
+      return game.playerNames.join(', ');
+    }
+    
+    // Fallback to basic info if no names available
+    const playerIds = [game.player1_id, game.player2_id, game.player3_id, game.player4_id].filter(id => id);
+    if (playerIds.length > 0) {
+      return `${playerIds.length} spelare tillagda`;
+    }
+    
+    return 'Inga spelare';
   }
 }

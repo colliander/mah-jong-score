@@ -24,7 +24,6 @@ export interface Player {
         <h2>Hantera spelare</h2>
         <div class="current-game">
           <strong>Aktuellt spel:</strong> {{ gameStateService.gameState().gameName }}
-          <span class="game-id">({{ gameStateService.gameState().gameId }})</span>
         </div>
       </div>
       
@@ -256,12 +255,6 @@ export interface Player {
     
     .current-game {
       color: #666;
-    }
-    
-    .game-id {
-      font-family: monospace;
-      font-size: 12px;
-      color: #999;
     }
     
     .current-players {
