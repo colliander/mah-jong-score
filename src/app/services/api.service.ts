@@ -83,4 +83,12 @@ export class ApiService {
     console.log('API call data for add-players:', data);
     return this.makeApiRequest('/add-players', data);
   }
+
+  // Update game information
+  updateGame(gameData: { gameId: string, name: string }): Observable<any> {
+    return this.makeApiRequest('/update-game', {
+      id: gameData.gameId,
+      name: gameData.name
+    });
+  }
 }

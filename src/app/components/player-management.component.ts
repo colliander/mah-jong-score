@@ -23,7 +23,47 @@ export interface Player {
       <div class="game-info">
         <h2>Hantera spelare</h2>
         <div class="current-game">
-          <strong>Aktuellt spel:</strong> {{ gameStateService.gameState().gameName }}
+          @if (editingGameName()) {
+            <div class="edit-game-section">
+              <strong>Aktuellt spel:</strong>
+              <div class="edit-game-input">
+                <input 
+                  type="text" 
+                  [(ngModel)]="newGameName"
+                  class="form-control game-name-input"
+                  placeholder="Ange spelnamn"
+                  (keyup.enter)="saveGameName()"
+                  (keyup.escape)="cancelEditGameName()"
+                >
+                <button 
+                  class="btn btn-small btn-success"
+                  (click)="saveGameName()"
+                  [disabled]="!newGameName.trim()"
+                  title="Spara"
+                >
+                  ✓
+                </button>
+                <button 
+                  class="btn btn-small btn-secondary"
+                  (click)="cancelEditGameName()"
+                  title="Avbryt"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="game-name-display">
+              <strong>Aktuellt spel:</strong> {{ gameStateService.gameState().gameName }}
+              <button 
+                class="btn btn-small btn-primary"
+                (click)="startEditGameName()"
+                title="Redigera spelnamn"
+              >
+                ✏️
+              </button>
+            </div>
+          }
         </div>
       </div>
       
@@ -255,6 +295,38 @@ export interface Player {
     
     .current-game {
       color: #666;
+    }
+    
+    .game-name-display {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .edit-game-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .edit-game-input {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .game-name-input {
+      flex: 1;
+      padding: 5px 8px;
+      font-size: 14px;
+      border: 2px solid #3498db;
+      border-radius: 4px;
+    }
+    
+    .game-name-input:focus {
+      outline: none;
+      border-color: #2980b9;
+      box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
     }
     
     .current-players {
@@ -588,6 +660,8 @@ export class PlayerManagementComponent implements OnInit {
   availablePlayers = signal<Player[]>([]);
   loadingPlayers = signal<boolean>(false);
   initialPlayerCount = 0; // Track how many players were already in the game
+  editingGameName = signal<boolean>(false);
+  newGameName = '';
   
   newPlayer = {
     firstname: '',
@@ -954,5 +1028,69 @@ export class PlayerManagementComponent implements OnInit {
 
   isInitialPlayer(index: number): boolean {
     return index < this.initialPlayerCount;
+  }
+
+  startEditGameName() {
+    this.editingGameName.set(true);
+    this.newGameName = this.gameStateService.gameState().gameName || '';
+    this.errorMessage.set('');
+    
+    // Focus the input field after a short delay
+    setTimeout(() => {
+      const input = document.querySelector('.game-name-input') as HTMLInputElement;
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    }, 100);
+  }
+
+  cancelEditGameName() {
+    this.editingGameName.set(false);
+    this.newGameName = '';
+    this.errorMessage.set('');
+  }
+
+  saveGameName() {
+    if (!this.newGameName.trim()) {
+      this.errorMessage.set('Spelnamnet får inte vara tomt.');
+      return;
+    }
+
+    const gameId = this.gameStateService.gameState().gameId;
+    if (!gameId) {
+      this.errorMessage.set('Spel-ID saknas.');
+      return;
+    }
+
+    const updateData = {
+      gameId: gameId,
+      name: this.newGameName.trim()
+    };
+
+    // Call API to update game name
+    this.apiService.updateGame(updateData).subscribe({
+      next: (response) => {
+        console.log('Game name updated:', response);
+        
+        // Update the game state with new name
+        this.gameStateService.updateGameState({
+          gameName: this.newGameName.trim()
+        });
+        
+        this.cancelEditGameName();
+        this.gameStateService.showNotification('success', `Spelnamn uppdaterat till "${this.newGameName.trim()}"!`);
+      },
+      error: (error) => {
+        console.error('Error updating game name:', error);
+        if (error.status === 404) {
+          this.errorMessage.set('Spelet hittades inte.');
+        } else if (error.status === 400) {
+          this.errorMessage.set('Ogiltigt spelnamn.');
+        } else {
+          this.errorMessage.set('Kunde inte uppdatera spelnamnet. Försök igen.');
+        }
+      }
+    });
   }
 }
