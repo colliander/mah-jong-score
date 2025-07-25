@@ -240,7 +240,11 @@ export interface Player {
       <div class="validation-info">
         <div class="player-count" [class.valid]="gameStateService.gameState().players.length === 4">
           <span class="icon">{{ gameStateService.gameState().players.length === 4 ? '✓' : '⚠' }}</span>
-          Exakt 4 spelare krävs för Mah-jong ({{ gameStateService.gameState().players.length }}/4)
+          @if (gameStateService.gameState().players.length === 4) {
+            Redo att spela! ({{ gameStateService.gameState().players.length }}/4 spelare)
+          } @else {
+            Exakt 4 spelare krävs för Mah-jong ({{ gameStateService.gameState().players.length }}/4)
+          }
         </div>
       </div>
       
@@ -252,6 +256,16 @@ export interface Player {
         >
           ← Tillbaka till spelval
         </button>
+        
+        @if (gameStateService.gameState().players.length === 4) {
+          <button 
+            class="btn btn-primary"
+            (click)="goToScoreRegistration()"
+            title="Gå direkt till poängregistrering utan att ändra spelare"
+          >
+            🎯 Registrera poäng
+          </button>
+        }
         
         <button 
           class="btn btn-success"
@@ -638,12 +652,24 @@ export interface Player {
     .action-buttons {
       display: flex;
       justify-content: space-between;
-      gap: 15px;
+      gap: 10px;
       margin-top: 30px;
+      flex-wrap: wrap;
     }
     
     .action-buttons .btn {
       flex: 1;
+      min-width: 140px;
+    }
+    
+    @media (max-width: 600px) {
+      .action-buttons {
+        flex-direction: column;
+      }
+      
+      .action-buttons .btn {
+        width: 100%;
+      }
     }
     
     .error-message {
@@ -843,6 +869,24 @@ export class PlayerManagementComponent implements OnInit {
 
   goBackToGameSelection() {
     this.gameStateService.updateGameState({ currentView: 'gameSelection' });
+    this.errorMessage.set('');
+  }
+
+  goToScoreRegistration() {
+    const players = this.gameStateService.gameState().players;
+    
+    if (players.length !== 4) {
+      this.errorMessage.set('Exakt 4 spelare krävs för att registrera poäng.');
+      return;
+    }
+
+    // Set the first player as the current player and go directly to score registration
+    this.gameStateService.updateGameState({ 
+      playerName: players[0],
+      currentView: 'scoreRegistration' 
+    });
+    
+    this.gameStateService.showNotification('success', 'Går till poängregistrering!');
     this.errorMessage.set('');
   }
 

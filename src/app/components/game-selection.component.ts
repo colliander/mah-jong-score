@@ -40,24 +40,13 @@ export interface Game {
           <h3>Existerande spel</h3>
           <div class="games-list">
             @for (game of games(); track (game.gameId || game.id)) {
-              <div class="game-item">
-                <div class="game-info" (click)="loadGameDirectly(game)">
+              <div 
+                class="game-item"
+                (click)="loadGameDirectly(game)"
+              >
+                <div class="game-info">
                   <div class="game-header">
-                    @if (editingGameId() === (game.gameId || game.id)) {
-                      <div class="edit-game-name">
-                        <input 
-                          type="text" 
-                          [(ngModel)]="editGameName"
-                          class="form-control edit-input"
-                          placeholder="Ange spelnamn"
-                          (keyup.enter)="saveGameName(game)"
-                          (keyup.escape)="cancelEditGameName()"
-                          #editInput
-                        >
-                      </div>
-                    } @else {
-                      <div class="game-name">{{ game.gameName || game.name }}</div>
-                    }
+                    <div class="game-name">{{ game.gameName || game.name }}</div>
                     <div class="game-status" [class]="getStatusClass(game.status)">
                       {{ getStatusText(game.status) }}
                     </div>
@@ -75,33 +64,6 @@ export interface Game {
                     <div class="game-players no-players">
                       Inga spelare tillagda än
                     </div>
-                  }
-                </div>
-                <div class="game-actions">
-                  @if (editingGameId() === (game.gameId || game.id)) {
-                    <button 
-                      class="btn btn-small btn-success"
-                      (click)="saveGameName(game)"
-                      [disabled]="!editGameName.trim()"
-                      title="Spara"
-                    >
-                      ✓
-                    </button>
-                    <button 
-                      class="btn btn-small btn-secondary"
-                      (click)="cancelEditGameName()"
-                      title="Avbryt"
-                    >
-                      ✕
-                    </button>
-                  } @else {
-                    <button 
-                      class="btn btn-small btn-primary"
-                      (click)="startEditGameName(game)"
-                      title="Redigera spelnamn"
-                    >
-                      ✏️
-                    </button>
                   }
                 </div>
               </div>
@@ -180,23 +142,9 @@ export interface Game {
       border: 2px solid #e0e0e0;
       border-radius: 8px;
       padding: 15px;
+      cursor: pointer;
       transition: all 0.2s ease;
       background: white;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 15px;
-    }
-    
-    .game-info {
-      flex: 1;
-      cursor: pointer;
-    }
-    
-    .game-actions {
-      display: flex;
-      gap: 5px;
-      flex-shrink: 0;
     }
     
     .game-item:hover {
@@ -272,28 +220,6 @@ export interface Game {
     .game-players.no-players {
       color: #666;
       font-style: italic;
-    }
-    
-    .edit-game-name {
-      flex: 1;
-    }
-    
-    .edit-input {
-      padding: 5px 8px;
-      font-size: 16px;
-      font-weight: bold;
-      color: #2c3e50;
-      border: 2px solid #3498db;
-      border-radius: 4px;
-      background: white;
-      width: 100%;
-      box-sizing: border-box;
-    }
-    
-    .edit-input:focus {
-      outline: none;
-      border-color: #2980b9;
-      box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
     }
     
     .create-new-game {
@@ -379,8 +305,6 @@ export class GameSelectionComponent implements OnInit {
   games = signal<Game[]>([]);
   loading = signal(false);
   newGameName = '';
-  editingGameId = signal<string | null>(null);
-  editGameName = '';
   errorMessage = signal<string>('');
 
   constructor(
@@ -681,80 +605,5 @@ export class GameSelectionComponent implements OnInit {
     }
     
     return 'Inga spelare';
-  }
-
-  startEditGameName(game: Game) {
-    this.editingGameId.set(game.gameId || game.id || '');
-    this.editGameName = game.gameName || game.name || '';
-    this.errorMessage.set('');
-    
-    // Focus the input field after a short delay to ensure it's rendered
-    setTimeout(() => {
-      const input = document.querySelector('.edit-input') as HTMLInputElement;
-      if (input) {
-        input.focus();
-        input.select();
-      }
-    }, 100);
-  }
-
-  cancelEditGameName() {
-    this.editingGameId.set(null);
-    this.editGameName = '';
-    this.errorMessage.set('');
-  }
-
-  saveGameName(game: Game) {
-    if (!this.editGameName.trim()) {
-      this.errorMessage.set('Spelnamnet får inte vara tomt.');
-      return;
-    }
-
-    const gameId = game.gameId || game.id;
-    if (!gameId) {
-      this.errorMessage.set('Spel-ID saknas.');
-      return;
-    }
-
-    const updateData = {
-      gameId: gameId,
-      name: this.editGameName.trim()
-    };
-
-    // Call API to update game name
-    this.apiService.updateGame(updateData).subscribe({
-      next: (response) => {
-        console.log('Game name updated:', response);
-        
-        // Update the game in the local list
-        const currentGames = this.games();
-        const updatedGames = currentGames.map(g => {
-          if ((g.gameId || g.id) === gameId) {
-            return {
-              ...g,
-              gameName: this.editGameName.trim(),
-              name: this.editGameName.trim()
-            };
-          }
-          return g;
-        });
-        
-        this.games.set(updatedGames);
-        this.cancelEditGameName();
-        
-        // Show success notification if available
-        this.gameStateService.showNotification('success', `Spelnamn uppdaterat till "${this.editGameName.trim()}"!`);
-      },
-      error: (error) => {
-        console.error('Error updating game name:', error);
-        if (error.status === 404) {
-          this.errorMessage.set('Spelet hittades inte.');
-        } else if (error.status === 400) {
-          this.errorMessage.set('Ogiltigt spelnamn.');
-        } else {
-          this.errorMessage.set('Kunde inte uppdatera spelnamnet. Försök igen.');
-        }
-      }
-    });
   }
 }
